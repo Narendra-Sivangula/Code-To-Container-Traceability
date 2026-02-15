@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-app
+  namespace: nodejs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodejs
+  template:
+    metadata:
+      labels:
+        app: nodejs
+    spec:
+      containers:
+      - name: nodejs
+        image: narendra115c/node-js:node-js-master-88-728d09b
+        env:
+          - name: CRASH_ON_START
+            value: "true"
+        ports:
+        - containerPort: 3000

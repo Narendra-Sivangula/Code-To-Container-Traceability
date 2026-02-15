@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: deployment-trace-
+  namespace: nodejs
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    spec:
+      serviceAccountName: collector-sa
+      containers:
+      - name: collector
+        image: narendra115c/collector:1.7
+        env:
+        - name: APP_NAME
+          value: nodejs-app
+        - name: NAMESPACE
+          value: nodejs
+      restartPolicy: Never
