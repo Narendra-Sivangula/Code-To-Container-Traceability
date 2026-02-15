@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opensearch
+  namespace: observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opensearch
+  template:
+    metadata:
+      labels:
+        app: opensearch
+    spec:
+      containers:
+      - name: opensearch
+        image: opensearchproject/opensearch:2.12.0
+        env:
+          - name: discovery.type
+            value: single-node
+          - name: OPENSEARCH_JAVA_OPTS
+            value: "-Xms512m -Xmx512m"
+          - name: DISABLE_SECURITY_PLUGIN
+            value: "true"
+        ports:
+          - containerPort: 9200
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+
