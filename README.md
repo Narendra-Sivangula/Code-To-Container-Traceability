@@ -1,7 +1,7 @@
 #  Code-to-Container Traceability & Observability Platform
 
 > **End-to-end CI → CD → Runtime → Health → Metrics → Impact observability**  
-> built using Jenkins, ArgoCD, Kubernetes, OpenSearch, Prometheus, and Grafana.
+> built using Docker, Jenkins, ArgoCD, Kubernetes, OpenSearch, Prometheus, and Grafana.
 
 ---
 
