@@ -200,6 +200,7 @@ ArgoCD is installed using the **official upstream manifest**, version pinned for
 ```bash
 sudo sh ArgoCD-Setup/install-argocd.sh
 
+```
 
 ## 🎯 Key Observability Principles Used
 
