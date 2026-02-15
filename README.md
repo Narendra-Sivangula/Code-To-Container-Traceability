@@ -37,7 +37,7 @@ It is a **data-driven traceability system** built from first principles.
 
 ## 🧠 Architecture & Data Flow
 
-[![Architecture](images/architecture.png)](images/architecture.png)
+[![Architecture](Architecture/Architecture.png)](Architecture/Architecture.png)
 
 
 
