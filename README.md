@@ -210,7 +210,7 @@ With proper attribution.
 ## 🙌 Author
 
 **Narendra Sivangula**  
-DevOps / SRE Engineer  
+Cloud & DevOps Engineer  
 
 Focus areas:
 - Kubernetes
