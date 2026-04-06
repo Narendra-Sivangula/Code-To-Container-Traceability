@@ -1,0 +1,356 @@
+
+<style>
+@keyframes fadeInDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeInUp   { from { opacity:0; transform:translateY(8px);  } to { opacity:1; transform:translateY(0); } }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.55;} }
+@keyframes dot-travel { 0%{stroke-dashoffset:200;opacity:1;} 80%{opacity:1;} 100%{stroke-dashoffset:0;opacity:0;} }
+@keyframes glow-in { from{opacity:0;r:4;} to{opacity:1;r:7;} }
+@keyframes badge-pop { from{transform:scale(0.5);opacity:0;} to{transform:scale(1);opacity:1;} }
+
+.node-box { transition: filter 0.3s; }
+.node-box.active { filter: drop-shadow(0 0 6px #7F77DD); }
+.node-box.done   { opacity: 1; }
+.node-box.dim    { opacity: 0.28; }
+
+.flow-dot {
+  stroke-dasharray: 8 200;
+  stroke-dashoffset: 200;
+  stroke-linecap: round;
+  fill: none;
+  opacity: 0;
+}
+.flow-dot.go {
+  animation: dot-travel 1.1s ease-in forwards;
+}
+
+.step-label {
+  font-size: 12px;
+  font-family: var(--font-sans, sans-serif);
+  fill: var(--color-text-secondary, #888);
+}
+.node-title {
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-sans, sans-serif);
+}
+.node-sub {
+  font-size: 11px;
+  font-family: var(--font-sans, sans-serif);
+}
+
+.progress-pip {
+  transition: fill 0.3s, r 0.3s;
+}
+
+.info-card {
+  transition: opacity 0.4s;
+}
+</style>
+
+<svg id="main-svg" width="100%" viewBox="0 0 680 840" style="display:block;">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- ── STATIC CONNECTORS ── -->
+  <!-- developer → github -->
+  <line x1="340" y1="72" x2="340" y2="114" stroke="#C2C0B6" stroke-width="0.5" marker-end="url(#arr)"/>
+  <!-- github → jenkins -->
+  <line x1="340" y1="170" x2="340" y2="214" stroke="#C2C0B6" stroke-width="0.5" marker-end="url(#arr)"/>
+  <!-- jenkins → registry -->
+  <line x1="228" y1="244" x2="148" y2="244" stroke="#C2C0B6" stroke-width="0.5" marker-end="url(#arr)"/>
+  <!-- jenkins → argocd -->
+  <line x1="340" y1="270" x2="340" y2="314" stroke="#C2C0B6" stroke-width="0.5" marker-end="url(#arr)"/>
+  <!-- jenkins → ci-build-metadata -->
+  <path d="M452 244 L570 244 L570 344" fill="none" stroke="#C2C0B6" stroke-width="0.5" marker-end="url(#arr)"/>
+  <!-- argocd → k8s (app pod) -->
+  <path d="M300 370 L170 370 L170 434" fill="none" stroke="#C2C0B6" stroke-width="0.5" marker-end="url(#arr)"/>
+  <!-- argocd → k8s (deployment-trace) -->
+  <line x1="340" y1="370" x2="340" y2="434" stroke="#C2C0B6" stroke-width="0.5" marker-end="url(#arr)"/>
+  <!-- deployment-trace → deployment-metadata -->
+  <line x1="340" y1="490" x2="340" y2="584" stroke="#C2C0B6" stroke-width="0.5" marker-end="url(#arr)"/>
+  <!-- traceability-agg → ctc-traceability -->
+  <path d="M530 490 L530 540 L120 540 L120 584" fill="none" stroke="#C2C0B6" stroke-width="0.5" marker-end="url(#arr)"/>
+  <!-- 3 indexes → grafana -->
+  <path d="M120 640 L120 700 L340 700 L340 734" fill="none" stroke="#C2C0B6" stroke-width="0.5" marker-end="url(#arr)"/>
+  <line x1="340" y1="640" x2="340" y2="734" stroke="#C2C0B6" stroke-width="0.5" marker-end="url(#arr)"/>
+  <path d="M570 400 L610 400 L610 700 L340 700" fill="none" stroke="#C2C0B6" stroke-width="0.5"/>
+  <!-- grafana → engineer -->
+  <line x1="340" y1="790" x2="340" y2="814" stroke="#C2C0B6" stroke-width="0.5" marker-end="url(#arr)"/>
+
+  <!-- ── NODES ── -->
+  <!-- 0: Developer -->
+  <g id="n0" class="node-box dim">
+    <rect x="265" y="28" width="150" height="44" rx="8" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+    <text class="node-title" x="340" y="46" text-anchor="middle" dominant-baseline="central" fill="#0C447C">Developer</text>
+    <text class="node-sub"   x="340" y="62" text-anchor="middle" dominant-baseline="central" fill="#185FA5">pushes code</text>
+  </g>
+
+  <!-- 1: GitHub -->
+  <g id="n1" class="node-box dim">
+    <rect x="255" y="114" width="170" height="56" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+    <text class="node-title" x="340" y="134" text-anchor="middle" dominant-baseline="central" fill="#444441">GitHub</text>
+    <text class="node-sub"   x="340" y="152" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">fires webhook on commit</text>
+  </g>
+
+  <!-- 2: Jenkins -->
+  <g id="n2" class="node-box dim">
+    <rect x="228" y="214" width="224" height="56" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+    <text class="node-title" x="340" y="234" text-anchor="middle" dominant-baseline="central" fill="#3C3489">Jenkins CI</text>
+    <text class="node-sub"   x="340" y="252" text-anchor="middle" dominant-baseline="central" fill="#534AB7">build, test, capture metadata</text>
+  </g>
+
+  <!-- 3: Container Registry -->
+  <g id="n3" class="node-box dim">
+    <rect x="60" y="214" width="128" height="56" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+    <text class="node-title" x="124" y="234" text-anchor="middle" dominant-baseline="central" fill="#444441">Container</text>
+    <text class="node-title" x="124" y="252" text-anchor="middle" dominant-baseline="central" fill="#444441">Registry</text>
+  </g>
+
+  <!-- 4: ci-build-metadata -->
+  <g id="n4" class="node-box dim">
+    <rect x="490" y="344" width="170" height="56" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
+    <text class="node-title" x="575" y="364" text-anchor="middle" dominant-baseline="central" fill="#085041">ci-build-metadata</text>
+    <text class="node-sub"   x="575" y="382" text-anchor="middle" dominant-baseline="central" fill="#0F6E56">OpenSearch index</text>
+  </g>
+
+  <!-- 5: ArgoCD -->
+  <g id="n5" class="node-box dim">
+    <rect x="228" y="314" width="224" height="56" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+    <text class="node-title" x="340" y="334" text-anchor="middle" dominant-baseline="central" fill="#3C3489">ArgoCD</text>
+    <text class="node-sub"   x="340" y="352" text-anchor="middle" dominant-baseline="central" fill="#534AB7">GitOps — auto sync</text>
+  </g>
+
+  <!-- K8s cluster dashed boundary -->
+  <rect x="50" y="424" width="590" height="126" rx="10" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="6 4"/>
+  <text class="node-sub" x="72" y="442" fill="#888780">Kubernetes cluster</text>
+
+  <!-- 6: App Pod -->
+  <g id="n6" class="node-box dim">
+    <rect x="70" y="448" width="160" height="50" rx="8" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+    <text class="node-title" x="150" y="466" text-anchor="middle" dominant-baseline="central" fill="#0C447C">Application pod</text>
+    <text class="node-sub"   x="150" y="482" text-anchor="middle" dominant-baseline="central" fill="#185FA5">developer workload</text>
+  </g>
+
+  <!-- 7: deployment-trace -->
+  <g id="n7" class="node-box dim">
+    <rect x="258" y="448" width="168" height="50" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+    <text class="node-title" x="342" y="466" text-anchor="middle" dominant-baseline="central" fill="#712B13">deployment-trace</text>
+    <text class="node-sub"   x="342" y="482" text-anchor="middle" dominant-baseline="central" fill="#993C1D">K8s Job — runs once</text>
+  </g>
+
+  <!-- 8: traceability-aggregator -->
+  <g id="n8" class="node-box dim">
+    <rect x="454" y="448" width="168" height="50" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+    <text class="node-title" x="538" y="462" text-anchor="middle" dominant-baseline="central" fill="#712B13">traceability-</text>
+    <text class="node-title" x="538" y="478" text-anchor="middle" dominant-baseline="central" fill="#712B13">aggregator</text>
+  </g>
+
+  <!-- 9: deployment-metadata -->
+  <g id="n9" class="node-box dim">
+    <rect x="230" y="584" width="220" height="56" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
+    <text class="node-title" x="340" y="604" text-anchor="middle" dominant-baseline="central" fill="#085041">deployment-metadata</text>
+    <text class="node-sub"   x="340" y="622" text-anchor="middle" dominant-baseline="central" fill="#0F6E56">OpenSearch index</text>
+  </g>
+
+  <!-- 10: ctc-traceability -->
+  <g id="n10" class="node-box dim">
+    <rect x="30" y="584" width="165" height="56" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
+    <text class="node-title" x="112" y="604" text-anchor="middle" dominant-baseline="central" fill="#085041">ctc-traceability</text>
+    <text class="node-sub"   x="112" y="622" text-anchor="middle" dominant-baseline="central" fill="#0F6E56">OpenSearch index</text>
+  </g>
+
+  <!-- 11: Grafana -->
+  <g id="n11" class="node-box dim">
+    <rect x="230" y="734" width="220" height="56" rx="8" fill="#EAF3DE" stroke="#97C459" stroke-width="0.5"/>
+    <text class="node-title" x="340" y="754" text-anchor="middle" dominant-baseline="central" fill="#27500A">Grafana</text>
+    <text class="node-sub"   x="340" y="772" text-anchor="middle" dominant-baseline="central" fill="#3B6D11">8 dashboards</text>
+  </g>
+
+  <!-- 12: Engineer -->
+  <g id="n12" class="node-box dim">
+    <rect x="255" y="814" width="170" height="24" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+    <text class="node-title" x="340" y="826" text-anchor="middle" dominant-baseline="central" fill="#444441">Engineer / SRE / Architect</text>
+  </g>
+
+  <!-- ── ANIMATED DOTS ── -->
+  <!-- d0: developer→github -->
+  <line id="d0" class="flow-dot" x1="340" y1="72" x2="340" y2="114" stroke="#378ADD" stroke-width="3"/>
+  <!-- d1: github→jenkins -->
+  <line id="d1" class="flow-dot" x1="340" y1="170" x2="340" y2="214" stroke="#7F77DD" stroke-width="3"/>
+  <!-- d2: jenkins→registry -->
+  <line id="d2" class="flow-dot" x1="228" y1="244" x2="148" y2="244" stroke="#888780" stroke-width="3"/>
+  <!-- d3: jenkins→ci-build-metadata -->
+  <path id="d3" class="flow-dot" d="M452 244 L570 244 L570 344" stroke="#1D9E75" stroke-width="3"/>
+  <!-- d4: jenkins→argocd -->
+  <line id="d4" class="flow-dot" x1="340" y1="270" x2="340" y2="314" stroke="#7F77DD" stroke-width="3"/>
+  <!-- d5: argocd→app pod -->
+  <path id="d5" class="flow-dot" d="M300 370 L170 370 L170 434" stroke="#378ADD" stroke-width="3"/>
+  <!-- d6: argocd→deployment-trace -->
+  <line id="d6" class="flow-dot" x1="340" y1="370" x2="340" y2="434" stroke="#D85A30" stroke-width="3"/>
+  <!-- d7: deployment-trace→deployment-metadata -->
+  <line id="d7" class="flow-dot" x1="340" y1="498" x2="340" y2="584" stroke="#1D9E75" stroke-width="3"/>
+  <!-- d8: traceability-agg→ctc-traceability -->
+  <path id="d8" class="flow-dot" d="M530 498 L530 540 L120 540 L120 584" stroke="#1D9E75" stroke-width="3"/>
+  <!-- d9: indexes→grafana -->
+  <path id="d9" class="flow-dot" d="M120 640 L120 700 L340 700 L340 734" stroke="#639922" stroke-width="3"/>
+  <path id="d9b" class="flow-dot" d="M340 640 L340 734" stroke="#639922" stroke-width="3"/>
+  <path id="d9c" class="flow-dot" d="M575 400 L610 400 L610 700 L340 700" stroke="#639922" stroke-width="3"/>
+  <!-- d10: grafana→engineer -->
+  <line id="d10" class="flow-dot" x1="340" y1="790" x2="340" y2="814" stroke="#639922" stroke-width="3"/>
+
+  <!-- ── STEP INFO PANEL ── -->
+  <rect id="info-bg" x="20" y="6" width="240" height="18" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5" opacity="0"/>
+  <text id="info-text" class="node-sub" x="140" y="19" text-anchor="middle" dominant-baseline="central" fill="#3C3489" opacity="0"></text>
+
+  <!-- ── PROGRESS PIPS ── -->
+  <g id="pips" transform="translate(340,10)">
+    <circle id="pip0"  cx="-117" cy="0" r="4" class="progress-pip" fill="#C2C0B6"/>
+    <circle id="pip1"  cx="-90"  cy="0" r="4" class="progress-pip" fill="#C2C0B6"/>
+    <circle id="pip2"  cx="-63"  cy="0" r="4" class="progress-pip" fill="#C2C0B6"/>
+    <circle id="pip3"  cx="-36"  cy="0" r="4" class="progress-pip" fill="#C2C0B6"/>
+    <circle id="pip4"  cx="-9"   cy="0" r="4" class="progress-pip" fill="#C2C0B6"/>
+    <circle id="pip5"  cx="18"   cy="0" r="4" class="progress-pip" fill="#C2C0B6"/>
+    <circle id="pip6"  cx="45"   cy="0" r="4" class="progress-pip" fill="#C2C0B6"/>
+    <circle id="pip7"  cx="72"   cy="0" r="4" class="progress-pip" fill="#C2C0B6"/>
+    <circle id="pip8"  cx="99"   cy="0" r="4" class="progress-pip" fill="#C2C0B6"/>
+    <circle id="pip9"  cx="126"  cy="0" r="4" class="progress-pip" fill="#C2C0B6"/>
+  </g>
+</svg>
+
+<!-- Controls -->
+<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 0 4px;font-size:13px;color:var(--color-text-secondary);">
+  <button id="btn-play" onclick="startAnimation()" style="padding:6px 20px;border:0.5px solid var(--color-border-secondary);border-radius:8px;background:transparent;color:var(--color-text-primary);cursor:pointer;font-size:13px;">Play</button>
+  <button id="btn-reset" onclick="resetAnimation()" style="padding:6px 20px;border:0.5px solid var(--color-border-secondary);border-radius:8px;background:transparent;color:var(--color-text-primary);cursor:pointer;font-size:13px;">Reset</button>
+  <span id="step-counter" style="min-width:80px;text-align:center;">Step 0 / 10</span>
+</div>
+
+<script>
+const STEPS = [
+  { nodes:[0],      dots:['d0'],          pip:0,  info:'Developer pushes code to GitHub' },
+  { nodes:[1],      dots:['d1'],          pip:1,  info:'Webhook triggers Jenkins build' },
+  { nodes:[2,3],    dots:['d2','d3'],     pip:2,  info:'Jenkins builds image → registry + indexes build metadata' },
+  { nodes:[4],      dots:['d4'],          pip:3,  info:'ci-build-metadata stored in OpenSearch' },
+  { nodes:[5],      dots:['d5','d6'],     pip:4,  info:'ArgoCD syncs → deploys app pod + deployment-trace Job' },
+  { nodes:[6,7],    dots:[],              pip:5,  info:'App pod running, deployment-trace Job starts' },
+  { nodes:[8],      dots:['d7'],          pip:6,  info:'deployment-trace collects pod status → sends to OpenSearch' },
+  { nodes:[9],      dots:['d8'],          pip:7,  info:'traceability-aggregator collects all pods + metrics' },
+  { nodes:[10],     dots:['d9','d9b','d9c'], pip:8, info:'All 3 indexes feed into Grafana dashboards' },
+  { nodes:[11,12],  dots:['d10'],         pip:9,  info:'Engineer sees end-to-end traceability in Grafana' },
+];
+
+const allNodeIds = ['n0','n1','n2','n3','n4','n5','n6','n7','n8','n9','n10','n11','n12'];
+const pipColors  = ['#378ADD','#7F77DD','#7F77DD','#1D9E75','#7F77DD','#378ADD','#D85A30','#1D9E75','#639922','#639922'];
+let currentStep = -1;
+let timer = null;
+let running = false;
+
+function setInfo(text) {
+  const bg = document.getElementById('info-bg');
+  const t  = document.getElementById('info-text');
+  const w  = Math.min(text.length * 7 + 24, 640);
+  bg.setAttribute('width', w);
+  bg.setAttribute('x', (680 - w) / 2);
+  t.setAttribute('x', 340);
+  t.textContent = text;
+  bg.setAttribute('opacity', '1');
+  t.setAttribute('opacity', '1');
+}
+
+function fireDoc(dotId) {
+  const el = document.getElementById(dotId);
+  if (!el) return;
+  el.classList.remove('go');
+  void el.offsetWidth;
+  el.classList.add('go');
+}
+
+function activateNodes(nodeNums) {
+  allNodeIds.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('active','done');
+    el.classList.add('dim');
+  });
+  nodeNums.forEach(n => {
+    const el = document.getElementById('n' + n);
+    el.classList.remove('dim');
+    el.classList.add('active');
+  });
+  for (let i = 0; i < currentStep; i++) {
+    STEPS[i].nodes.forEach(n => {
+      const el = document.getElementById('n' + n);
+      el.classList.remove('dim','active');
+      el.classList.add('done');
+    });
+  }
+}
+
+function setPips(upTo, color) {
+  for (let i = 0; i <= 9; i++) {
+    const pip = document.getElementById('pip' + i);
+    if (i < upTo)      { pip.setAttribute('fill', '#C2C0B6'); pip.setAttribute('r','4'); }
+    else if (i === upTo){ pip.setAttribute('fill', color);     pip.setAttribute('r','6'); }
+    else                { pip.setAttribute('fill', '#C2C0B6'); pip.setAttribute('r','4'); }
+  }
+}
+
+function runStep(idx) {
+  if (idx >= STEPS.length) {
+    running = false;
+    document.getElementById('btn-play').textContent = 'Play';
+    document.getElementById('step-counter').textContent = 'Done!';
+    allNodeIds.forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('dim','active');
+      el.classList.add('done');
+    });
+    return;
+  }
+  currentStep = idx;
+  const step = STEPS[idx];
+  document.getElementById('step-counter').textContent = 'Step ' + (idx+1) + ' / ' + STEPS.length;
+  activateNodes(step.nodes);
+  step.dots.forEach(d => fireDoc(d));
+  setPips(step.pip, pipColors[step.pip]);
+  setInfo(step.info);
+  timer = setTimeout(() => runStep(idx + 1), 1800);
+}
+
+function startAnimation() {
+  if (running) return;
+  running = true;
+  document.getElementById('btn-play').textContent = 'Playing…';
+  resetNodes();
+  currentStep = -1;
+  runStep(0);
+}
+
+function resetNodes() {
+  allNodeIds.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('active','done');
+    el.classList.add('dim');
+  });
+  ['d0','d1','d2','d3','d4','d5','d6','d7','d8','d9','d9b','d9c','d10'].forEach(d => {
+    const el = document.getElementById(d);
+    if (el) el.classList.remove('go');
+  });
+  for (let i=0;i<=9;i++) {
+    document.getElementById('pip'+i).setAttribute('fill','#C2C0B6');
+    document.getElementById('pip'+i).setAttribute('r','4');
+  }
+  document.getElementById('info-bg').setAttribute('opacity','0');
+  document.getElementById('info-text').setAttribute('opacity','0');
+}
+
+function resetAnimation() {
+  clearTimeout(timer);
+  running = false;
+  currentStep = -1;
+  resetNodes();
+  document.getElementById('btn-play').textContent = 'Play';
+  document.getElementById('step-counter').textContent = 'Step 0 / 10';
+}
+</script>
