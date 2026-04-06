@@ -41,7 +41,7 @@ It is a **data-driven traceability system** designed from first principles using
 ## 🧠 Architecture & Data Flow
 
 > Click the image to view in full resolution.
-[![Architecture](Architecture/Architecture.png)]
+[![Architecture](Architecture/Architecture.png)](Architecture/Architecture.png)
 ---
 
 ## 🧩 Core Components
